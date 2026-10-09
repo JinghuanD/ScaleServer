@@ -1,0 +1,50 @@
+{
+  "url": "http://127.0.0.1:8000/work",
+  "workload_pattern": [
+    [
+      1,
+      120
+    ],
+    [
+      2,
+      120
+    ],
+    [
+      3,
+      120
+    ],
+    [
+      5,
+      120
+    ],
+    [
+      8,
+      120
+    ],
+    [
+      10,
+      120
+    ],
+    [
+      5,
+      120
+    ],
+    [
+      2,
+      120
+    ],
+    [
+      1,
+      120
+    ]
+  ],
+  "interrupted": false,
+  "submitted_requests": 4440,
+  "recorded_requests": 4440,
+  "successful_requests": 3717,
+  "failed_requests": 723,
+  "all_requests_recorded": true,
+  "mean_success_response_seconds": 1.016987996610822,
+  "p95_success_response_seconds": 3.5607701999833807,
+  "max_queue_delay_seconds": 0.08672539994586259
+}

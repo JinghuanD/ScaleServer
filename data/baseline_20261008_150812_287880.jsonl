@@ -1,0 +1,14 @@
+{"timestamp": 1791493692.288456, "run_id": "20261008_150812_287880", "kind": "controller_started", "scale_out_threshold": 70.0, "scale_in_threshold": 30.0, "scale_out_samples": 5, "scale_in_samples": 10, "cooldown_seconds": 15, "check_interval_seconds": 1}
+{"timestamp": 1791493693.5779264, "run_id": "20261008_150812_287880", "kind": "sample", "cpu": 0.01, "container_count": 1, "sample_number": 1}
+{"timestamp": 1791493696.5748553, "run_id": "20261008_150812_287880", "kind": "sample", "cpu": 0.01, "container_count": 1, "sample_number": 2}
+{"timestamp": 1791493698.8422413, "run_id": "20261008_150812_287880", "kind": "sample", "cpu": 0.01, "container_count": 1, "sample_number": 3}
+{"timestamp": 1791493701.1154516, "run_id": "20261008_150812_287880", "kind": "sample", "cpu": 0.01, "container_count": 1, "sample_number": 4}
+{"timestamp": 1791493703.3810263, "run_id": "20261008_150812_287880", "kind": "sample", "cpu": 0.01, "container_count": 1, "sample_number": 5}
+{"timestamp": 1791493706.3929818, "run_id": "20261008_150812_287880", "kind": "sample", "cpu": 0.01, "container_count": 1, "sample_number": 6}
+{"timestamp": 1791493708.6824107, "run_id": "20261008_150812_287880", "kind": "sample", "cpu": 0.01, "container_count": 1, "sample_number": 7}
+{"timestamp": 1791493710.9637005, "run_id": "20261008_150812_287880", "kind": "sample", "cpu": 0.01, "container_count": 1, "sample_number": 8}
+{"timestamp": 1791493713.2429287, "run_id": "20261008_150812_287880", "kind": "sample", "cpu": 0.01, "container_count": 1, "sample_number": 9}
+{"timestamp": 1791493716.2566712, "run_id": "20261008_150812_287880", "kind": "sample", "cpu": 0.01, "container_count": 1, "sample_number": 10}
+{"timestamp": 1791493718.5301318, "run_id": "20261008_150812_287880", "kind": "sample", "cpu": 0.01, "container_count": 1, "sample_number": 11}
+{"timestamp": 1791493720.8054276, "run_id": "20261008_150812_287880", "kind": "sample", "cpu": 0.01, "container_count": 1, "sample_number": 12}
+{"timestamp": 1791493722.0726693, "run_id": "20261008_150812_287880", "kind": "controller_stopped", "reason": "keyboard_interrupt"}

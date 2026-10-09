@@ -4,7 +4,7 @@
 
 ScaleServer is an experimental project investigating how event-driven auto scaling compares with a periodic polling baseline under identical, reproducible HTTP workloads. The goal is to measure scaling responsiveness, application performance, resource efficiency, and controller overhead rather than assume that one architecture performs better.
 
-The project direction follows Jinghuan Ding's proposal, *Event-Driven Auto Scaling Controller for AWS EC2*. This repository currently contains a local Docker polling baseline and experiment tooling; the AWS event-driven architecture is planned work.
+The project direction follows Jinghuan Ding's proposal, *Event-Driven Auto Scaling Controller for AWS EC2*. This repository currently contains a local Docker polling baseline, a local event controller, and experiment tooling; the AWS event-driven architecture is planned work.
 
 ## Baseline experiment: local Docker auto-scaling
 
@@ -20,7 +20,7 @@ This run provides a local baseline for comparison with the upcoming event-driven
 
 ### Results and experiment history
 
-The successful run is recorded in [summary.json](data/run_20261006_155231_781230/summary.json) and [requests.csv](data/run_20261006_155231_781230/requests.csv). Its monitoring data is in [data/results.csv](data/results.csv). The [Version 3 archive](Baseline_Experiment_3.zip) preserves request records, summary, monitoring data, and controller/workload logs together.
+The successful run is recorded in [summary.json](data/run_20261006_155231_781230/summary.json) and [requests.csv](data/run_20261006_155231_781230/requests.csv). Use the archived monitoring data for this baseline; the live `data/results.csv` changes with subsequent experiments. The [Version 3 archive](Baseline_Experiment_3.zip) preserves request records, summary, monitoring data, and controller/workload logs together.
 
 | Version | Issue or outcome | Resolution |
 | --- | --- | --- |
@@ -29,6 +29,35 @@ The successful run is recorded in [summary.json](data/run_20261006_155231_781230
 | **3 — Successful baseline** | All 4,440 requests succeeded with complete records and the expected 1 -> 2 -> 3 -> 2 -> 1 scaling sequence. | Retained as the successful local baseline for future comparison. |
 
 Earlier evidence is retained in the [Version 1 archive](Baseline_Experiment_1.zip) and [Version 2 request logs](data/run_20261006_150905_148956/requests.csv). Other timestamped run directories contain connectivity checks or an interrupted run; they are not part of the successful 18-minute baseline.
+
+## First comparison round: local event-driven experiment
+
+**The event-driven auto-scaling run completed successfully:** the full workload executed, every request succeeded, and container capacity increased and decreased with demand.
+
+| Metric | Result |
+| --- | --- |
+| Workload | 1 -> 2 -> 3 -> 5 -> 8 -> 10 -> 5 -> 2 -> 1 req/s |
+| Duration | 120 seconds per stage; 18 minutes total |
+| Total requests | 4,440 |
+| Success / failure rate | 100% / 0% |
+| Mean response time | 185.52 ms |
+| P95 response time | 205.43 ms |
+| Maximum request queue delay | 3.28 ms |
+| Container count | 1 -> 2 -> 3 -> 2 -> 1 |
+| Scaling actions | 2 scale-outs and 2 scale-ins; all successful |
+
+### Scaling behavior
+
+- The two scale-outs took **12.88 seconds** and **12.80 seconds**, measured from the first qualifying above-threshold CPU sample to the new container passing its application health check.
+- The two scale-ins took **30.82 seconds** and **30.70 seconds**, measured from the first qualifying below-threshold CPU sample to completion and verification of the container stop.
+- The three containers served **2,568**, **1,467**, and **405** requests, confirming that the added containers actually served traffic.
+- No additional repeated scale-in/scale-out cycles occurred during the workload window.
+
+The scale-out readiness measurements join `event_created.first_threshold_timestamp` to `application_ready.ready_observed_timestamp` using `action_id`. Scale-in measurements use `action_finished.first_threshold_to_finish_seconds`. These endpoints distinguish application readiness from Docker running-state verification.
+
+This run validates the local event controller's monitoring, event delivery, scaling execution, and load distribution, with zero request failures even during the highest **10 req/s** stage. **Whether it outperforms the baseline remains to be established through repeated experiments and consistent comparison metrics.** Monitoring still polls Docker CPU metrics; this is a local queue-based event controller, not the proposed AWS CloudWatch/EventBridge deployment.
+
+The preserved [experiment directory](data/Event_Experiment_20261008_210823/) contains the [request summary](data/Event_Experiment_20261008_210823/summary.json), [per-request records](data/Event_Experiment_20261008_210823/requests.csv), [controller events](data/Event_Experiment_20261008_210823/event_20261008_165641_861697.jsonl), and [resource metrics](data/Event_Experiment_20261008_210823/results.csv). A [ZIP archive](data/Event_Experiment_20261008_210823.zip) is also available. Restrict resource and controller analysis to the workload window; the preserved logs include monitoring outside that window.
 
 ## Research design
 
@@ -57,6 +86,7 @@ Both the polling baseline and event-driven design are intended to run the same a
 | Path | Purpose |
 | --- | --- |
 | `controller/baseline_controller.py` | Polls Docker CPU usage and starts or stops pre-existing containers named `app1`, `app2`, and `app3`. |
+| `controller/event_controller.py` | Local event controller: polls CPU in a monitoring thread, queues scaling events for execution, and records structured JSONL logs. |
 | `controller/metrics_collector.py` | Records average CPU usage and running container count to `data/results.csv`. |
 | `loadbalancer/load_balancer.py` | Flask proxy on port 8000 with concurrent backend health checks, locked round-robin selection, and per-request fallback across healthy backends on ports 5000-5002. |
 | `workload/workload_generator.py` | Runs the nine-stage, 18-minute workload; records each request, latency, backend identity, and completion status, then writes a run summary including mean and P95 latency. |
@@ -90,6 +120,61 @@ Before launching the workload, check `http://127.0.0.1:8000/health` and confirm 
 
 The baseline starts and stops existing containers; it does not create them. The metrics collector appends to `data/results.csv`; preserve or rotate that file before repeating an experiment. The workload generator creates a new `data/run_<timestamp>/` directory containing `requests.csv` and `summary.json`, and waits for submitted requests to complete before closing the CSV. `data/workload_results.csv` is retained as an earlier-format result file.
 
+For an event-controller experiment, replace `python controller/baseline_controller.py` with `python controller/event_controller.py`; run only one scaling controller at a time. Readiness probes expect HTTP 200 with a JSON `status` of `healthy` from each backend's `/health` endpoint.
+
+## Logging system
+
+The logging system has three parts: **request logs, resource metrics, and controller action logs**. They are correlated using timestamps.
+
+| File | Generated by | Contents | Purpose |
+| --- | --- | --- | --- |
+| `data/run_<timestamp>/requests.csv` | Workload generator | Request ID, stage, target rate, timestamps, queue delay, latency, status code, container ID, and errors | Analyze success rate, response time, and request distribution |
+| `summary.json` in the same run directory | Workload generator | Total requests, successful and failed requests, recording completeness, mean and P95 response time, and maximum queue delay | Summarize the experiment |
+| `data/results.csv` | Metrics collector | Sampling time, elapsed time, average CPU utilization, and running container count | Track resource utilization and capacity changes |
+| `data/event_<timestamp>.jsonl` | Event controller | CPU samples, event creation and receipt, scaling results, and timing measurements | Analyze scaling triggers and execution |
+| `data/baseline_<timestamp>.jsonl` | Current baseline controller | Structured samples, scaling decisions/actions, readiness observations, and timing measurements | Analyze baseline behavior with controller run/action IDs |
+| Manually saved `baseline_*_controller.log` | Baseline controller console output | CPU utilization, container count, and start/stop actions | Review earlier baseline behavior; older console logs have limited timing detail |
+| Manually saved `*_workload.log` | Workload generator console output | Stage transitions, progress, and final summary | Support troubleshooting; CSV files remain the primary analysis source |
+
+### Event controller entries
+
+The local event controller records the following lifecycle entries. Its monitoring thread still polls Docker metrics; events are delivered through an in-process queue, rather than through AWS EventBridge.
+
+| `kind` | Meaning | Relationship and timing fields |
+| --- | --- | --- |
+| `sample` | A CPU and container-count observation | Consecutive samples satisfying the threshold condition trigger an event, subject to cooldown and capacity limits. |
+| `event_created` | Creation of a `scale_out` or `scale_in` event | `first_threshold_timestamp` records the first threshold-crossing observation in the qualifying sequence; `created_timestamp` records event creation. |
+| `event_received` | Receipt of the event by the execution thread | `delivery_seconds` measures the time from event creation to receipt. |
+| `action_started` | Start of scaling execution | Records `action_id`, the container list before execution, and `action_started_timestamp`. |
+| `action_finished` | Completion of the scaling action and container-state verification | Records `success`, container lists `before` and `after`, `command_seconds`, and `first_threshold_to_finish_seconds`. |
+| `application_ready` | A newly started container passes its HTTP health check | Records `action_id`, container, `ready_observed_timestamp`, and `action_start_to_ready_seconds`. |
+| `application_ready_timeout` | Application readiness was not confirmed within the timeout | Records the affected container and action for troubleshooting. |
+| `controller_started` / `controller_stopped` | Controller lifecycle | Records policy settings on startup or a stop reason. |
+
+Exceptions are recorded separately as `monitor_error` or `action_error` entries. `command_seconds` measures the scaling function call; `first_threshold_to_finish_seconds` extends from the first qualifying observation through the post-action Docker-state check.
+
+### Tracing a scale-out operation
+
+For example, a scale-out operation can be correlated as follows:
+
+1. `requests.csv` shows the workload entering the **5 req/s** stage.
+2. `sample` entries show CPU utilization remaining above **70%** for the required number of consecutive samples.
+3. `event_created` records the scale-out event.
+4. `event_received` records its receipt by the execution thread.
+5. `action_finished` shows the running containers changing from `app1` to `app1` + `app2`.
+6. Subsequent entries in `results.csv` show the container count increasing to **2**.
+7. Responses in `requests.csv` include app2's container ID, confirming that it is serving requests. Match the returned ID to the Docker container name when correlating the files.
+
+This is an illustrative trace; the workload stage at which scaling occurs depends on the observed CPU samples.
+
+### Correlation and analysis limitations
+
+- Current controller logs include `run_id` and per-action `action_id`, allowing scaling and readiness entries to be joined directly. **There is still no shared experiment ID across request, resource, and controller logs**, so correlation between those files uses timestamps. Older controller logs may lack these IDs.
+- Request and event logs use Unix timestamps, while `results.csv` uses local date-time strings without a time-zone offset. Interpret those strings in the recording host's time zone and convert all timestamps to a consistent time zone before analysis.
+- Resource sampling occurs approximately every three seconds in the observed runs. The collector sleeps for one second in addition to Docker command execution time, so the interval is not fixed. The observed container-count change may appear later than the scaling action's completion.
+- `action_finished` verifies Docker state; current controllers separately record application health readiness as `application_ready` after scale-out. Older logs lack this measurement. Docker action completion and application readiness must be compared as distinct endpoints.
+- `results.csv` appends new records. Archive it before each experiment to avoid mixing runs, and restrict analysis to the workload window so that idle monitoring records after the workload ends are excluded.
+
 ## Planned evaluation
 
 - Scaling responsiveness: detection latency, scaling reaction time, and instance provisioning time.
@@ -97,7 +182,7 @@ The baseline starts and stops existing containers; it does not create them. The 
 - Resource efficiency: instance count, scaling operations, and EC2 instance-hours.
 - Controller overhead: metric queries, delivered events, and AWS API calls.
 
-The local scripts currently collect only a subset of these measurements. AWS integration, the event controller, duplicate-event handling, and the full comparative evaluation remain to be implemented. A simplified experiment may first deliver workload-change notifications directly to the event controller before integrating CloudWatch Alarm and EventBridge.
+The local scripts currently collect only a subset of these measurements. A local event controller now separates polling-based monitoring from scaling execution through an in-process queue and waits for each action to finish before producing another event. AWS integration, robust duplicate-event handling for external events, and the full comparative evaluation remain future work, including integration with CloudWatch Alarm and EventBridge.
 
 ## 项目简介
 

@@ -22,6 +22,7 @@ WORKLOAD_PATTERN = [
     (5, 120),
     (2, 120),
     (1, 120),
+    # (1, 60)
 ]
 
 MAX_WORKERS = 100
