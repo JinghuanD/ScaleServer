@@ -59,6 +59,34 @@ This run validates the local event controller's monitoring, event delivery, scal
 
 The preserved [experiment directory](data/Event_Experiment_20261008_210823/) contains the [request summary](data/Event_Experiment_20261008_210823/summary.json), [per-request records](data/Event_Experiment_20261008_210823/requests.csv), [controller events](data/Event_Experiment_20261008_210823/event_20261008_165641_861697.jsonl), and [resource metrics](data/Event_Experiment_20261008_210823/results.csv). A [ZIP archive](data/Event_Experiment_20261008_210823.zip) is also available. Restrict resource and controller analysis to the workload window; the preserved logs include monitoring outside that window.
 
+## Event-driven experiment: three repeated trials
+
+The event-driven autoscaling controller was evaluated across **three repeated trials**, each using the same 18-minute workload: **1 -> 2 -> 3 -> 5 -> 8 -> 10 -> 5 -> 2 -> 1 requests/s**, with each stage lasting 120 seconds. Trial 1 is the run described above, not an additional experiment.
+
+| Metric | Trial 1 | Trial 2 | Trial 3 |
+| --- | --- | --- | --- |
+| Total requests | 4,440 | 4,440 | 4,440 |
+| Failed requests | 0 | 0 | 0 |
+| Mean response time | 185.52 ms | 183.74 ms | 184.54 ms |
+| P95 response time | 205.43 ms | 203.32 ms | 205.26 ms |
+| First scale-out latency [1] | 12.88 s | 12.76 s | 12.75 s |
+| Second scale-out latency [1] | 12.80 s | 12.56 s | 12.55 s |
+| First scale-in latency [2] | 30.82 s | 30.80 s | 30.78 s |
+| Second scale-in latency [2] | 30.70 s | 30.76 s | 30.73 s |
+| Estimated container-seconds [3] | 1,716.45 | 1,716.66 | 1,716.65 |
+
+1. From the first above-threshold CPU sample to successful health verification of the new container.
+2. From the first below-threshold CPU sample to completion and verification of the container stop operation.
+3. Estimated by integrating the running-container count using scaling completion timestamps over the fixed 1,080-second interval beginning with the first scheduled request. Each run starts with one container; idle monitoring outside this interval is excluded. This measures container occupancy, not CPU consumption or application-ready time.
+
+All three trials followed the same container sequence, **1 -> 2 -> 3 -> 2 -> 1**, with two successful scale-out and two successful scale-in operations. Newly started containers actively served requests, and no additional scaling oscillation, controller errors, or application readiness timeouts were recorded.
+
+Across the three trials, **all 13,320 requests succeeded**. The average of the trial mean response times was **184.60 ms**, with a sample standard deviation of **0.89 ms**. The average of the three trial P95 values was **204.67 ms**; this is an average of per-trial percentiles, not a pooled-request P95. Aggregate statistics use the unrounded per-trial values.
+
+These results demonstrate consistent operation and repeatable performance under the tested workload. **A comparison with the Baseline controller is still required to determine whether the event-driven architecture provides a performance or resource-efficiency advantage.** The historical baseline above provides context; repeated baseline trials with consistent measurement endpoints are still needed.
+
+Preserved request records, summaries, resource metrics, and controller logs are available for [Trial 1](data/Event_Experiment_20261008_210823/), [Trial 2](data/Event_Experiment_20261009_154150/), and [Trial 3](data/Event_Experiment_20261009_162652/).
+
 ## Research design
 
 The proposed AWS flow is:
