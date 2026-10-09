@@ -184,6 +184,8 @@ This is an illustrative trace; the workload stage at which scaling occurs depend
 
 The local scripts currently collect only a subset of these measurements. A local event controller now separates polling-based monitoring from scaling execution through an in-process queue and waits for each action to finish before producing another event. AWS integration, robust duplicate-event handling for external events, and the full comparative evaluation remain future work, including integration with CloudWatch Alarm and EventBridge.
 
-## 项目简介
+## Project summary
 
-本项目研究面向 AWS EC2 的事件驱动自动扩缩容，将其与周期轮询方案在相同应用和可重复 HTTP 负载下进行对比，评估响应速度、应用性能、资源效率及控制器开销。目前仓库包含本地 Docker 轮询基线、负载均衡器、负载生成器和指标采集脚本；已完成 18 分钟本地基线实验，4,440 次请求全部成功，平均响应时间 184 ms、P95 为 203 ms，容器数量按 1 → 2 → 3 → 2 → 1 变化。AWS 事件驱动控制器及完整对比实验仍处于规划阶段。当前应用入口的运行限制见上文。
+This project investigates event-driven autoscaling for AWS EC2 by comparing it with periodic polling under the same application and reproducible HTTP workloads. Evaluation covers scaling responsiveness, application performance, resource efficiency, and controller overhead. The repository includes a local Docker polling baseline, a local event controller, a load balancer, a workload generator, and metrics collection scripts. The completed 18-minute baseline processed all 4,440 requests successfully, with a mean response time of 184 ms, a P95 of 203 ms, and a container-count sequence of 1 -> 2 -> 3 -> 2 -> 1. The local event-driven experiment also completed successfully, as detailed above. AWS integration and the full comparative evaluation remain future work. See the application entry-point limitation above before attempting to reproduce the experiments.
+
+Resource usage analysis for the event-driven run must exclude the several hours of idle monitoring recorded after the workload ended.
