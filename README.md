@@ -116,6 +116,25 @@ Scale-out response time was measured from the first qualifying high-CPU sample t
 
 The results show **comparable performance under the tested workload**. The event-driven controller's average scale-out response was approximately **0.05 seconds faster**, while its mean request response time was approximately **0.34 milliseconds higher**. Estimated container occupancy was nearly identical. These small observed differences do not establish a clear performance advantage for either controller. The experiments demonstrate reliable operation of both implementations under the tested conditions. This comparison evaluates the local implementations; the event controller still polls Docker metrics and delivers events through an in-process queue.
 
+### Scaling Response Time Breakdown
+
+To investigate the sources of scaling latency, response time was divided into three components: threshold confirmation, controller dispatch, and action execution. Threshold confirmation was measured from the first qualifying CPU sample to decision or event creation. Dispatch latency was measured from decision or event creation to action start. Execution time was measured from action start to observed application readiness for scale-out, or action completion for scale-in.
+
+The table below presents a preliminary breakdown from one baseline trial and one event-driven trial. **It does not represent the three-trial averages.**
+
+| Controller | Action | Threshold confirmation (s) | Dispatch latency (ms) | Execution time (s) |
+| --- | --- | --- | --- | --- |
+| Baseline | Scale-out 1 | 12.020 | 95.78 | 0.626 |
+| Baseline | Scale-out 2 | 12.059 | 98.77 | 0.396 |
+| Baseline | Scale-in 1 | 27.157 | 99.81 | 3.522 |
+| Baseline | Scale-in 2 | 27.114 | 95.43 | 3.529 |
+| Event-driven | Scale-out 1 | 12.027 | 99.27 | 0.623 |
+| Event-driven | Scale-out 2 | 12.054 | 100.89 | 0.395 |
+| Event-driven | Scale-in 1 | 27.147 | 98.16 | 3.534 |
+| Event-driven | Scale-in 2 | 27.123 | 97.70 | 3.505 |
+
+Threshold confirmation accounted for most of the observed scaling response time. Dispatch latency was approximately 100 ms for both controllers in these trials. Event delivery took approximately 0.20-0.31 ms, but this measured only the interval between event creation and receipt, rather than the complete dispatch interval. These observations help explain why rapid event delivery did not produce a clear reduction in overall scaling response time.
+
 ### Baseline comparison data
 
 Download the [three-run request archive](data/Baseline_Three_Runs_Requests.zip), containing `requests.csv` and `summary.json` for each trial. Corresponding controller logs provide scaling and readiness timestamps:
