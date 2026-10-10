@@ -83,9 +83,50 @@ All three trials followed the same container sequence, **1 -> 2 -> 3 -> 2 -> 1**
 
 Across the three trials, **all 13,320 requests succeeded**. The average of the trial mean response times was **184.60 ms**, with a sample standard deviation of **0.89 ms**. The average of the three trial P95 values was **204.67 ms**; this is an average of per-trial percentiles, not a pooled-request P95. Aggregate statistics use the unrounded per-trial values.
 
-These results demonstrate consistent operation and repeatable performance under the tested workload. **A comparison with the Baseline controller is still required to determine whether the event-driven architecture provides a performance or resource-efficiency advantage.** The historical baseline above provides context; repeated baseline trials with consistent measurement endpoints are still needed.
+These results demonstrate consistent operation and repeatable performance under the tested workload. The three-trial Baseline comparison below uses consistent measurement endpoints to evaluate the observed differences.
 
 Preserved request records, summaries, resource metrics, and controller logs are available for [Trial 1](data/Event_Experiment_20261008_210823/), [Trial 2](data/Event_Experiment_20261009_154150/), and [Trial 3](data/Event_Experiment_20261009_162652/).
+
+## Comparison of Baseline and Event-Driven Autoscaling
+
+Three trials were conducted for each controller using the same 18-minute workload. Request rates followed nine stages: **1, 2, 3, 5, 8, 10, 5, 2, and 1 requests per second**, with each stage lasting 120 seconds. Each trial generated 4,440 requests. The Baseline trials in this comparison are separate from the earlier historical baseline experiment above.
+
+| Controller | Trial | Successful requests | Failed requests | Mean response time (ms) | P95 response time (ms) |
+| --- | --- | --- | --- | --- | --- |
+| Baseline | 1 | 4,440 | 0 | 184.61 | 207.98 |
+| Baseline | 2 | 4,440 | 0 | 184.05 | 203.07 |
+| Baseline | 3 | 4,440 | 0 | 184.12 | 202.12 |
+| Event-driven | 1 | 4,440 | 0 | 185.52 | 205.43 |
+| Event-driven | 2 | 4,440 | 0 | 183.74 | 203.32 |
+| Event-driven | 3 | 4,440 | 0 | 184.54 | 205.26 |
+
+Both controllers completed two scale-out and two scale-in actions successfully in every trial. The container count followed the same sequence: **1 -> 2 -> 3 -> 2 -> 1**. All trials used identical scaling thresholds, consecutive-sample requirements, and cooldown settings.
+
+| Metric | Baseline | Event-driven |
+| --- | --- | --- |
+| Total requests across three trials | 13,320 | 13,320 |
+| Request success rate | 100% | 100% |
+| Average trial mean response time | 184.26 ms | 184.60 ms |
+| Average trial P95 response time | 204.39 ms | 204.67 ms |
+| Mean scale-out response time | 12.77 s | 12.72 s |
+| Mean scale-in response time | 30.76 s | 30.77 s |
+| Estimated container-seconds per trial | 1,716.55 | 1,716.59 |
+
+Scale-out response time was measured from the first qualifying high-CPU sample to successful application readiness. Scale-in response time was measured from the first qualifying low-CPU sample to action completion. Each scaling mean includes six actions of that type across three trials. Container-seconds were estimated from container-count changes recorded at action completion, within the fixed 1,080-second workload interval starting at the first scheduled request. Idle periods were excluded. The reported average P95 is the average of the three trial-level P95 values, rather than a pooled percentile. All aggregate values were calculated before rounding.
+
+The results show **comparable performance under the tested workload**. The event-driven controller's average scale-out response was approximately **0.05 seconds faster**, while its mean request response time was approximately **0.34 milliseconds higher**. Estimated container occupancy was nearly identical. These small observed differences do not establish a clear performance advantage for either controller. The experiments demonstrate reliable operation of both implementations under the tested conditions. This comparison evaluates the local implementations; the event controller still polls Docker metrics and delivers events through an in-process queue.
+
+### Baseline comparison data
+
+Download the [three-run request archive](data/Baseline_Three_Runs_Requests.zip), containing `requests.csv` and `summary.json` for each trial. Corresponding controller logs provide scaling and readiness timestamps:
+
+| Trial | Request directory within the ZIP | Controller log |
+| --- | --- | --- |
+| 1 | `run_20261009_165615_763818/` | [Trial 1 log](data/baseline_20261009_165440_012234.jsonl) |
+| 2 | `run_20261009_200153_334091/` | [Trial 2 log](data/baseline_20261009_200128_096106.jsonl) |
+| 3 | `run_20261010_145556_305558/` | [Trial 3 log](data/baseline_20261010_145429_577829.jsonl) |
+
+Event-driven source data is linked in the three-trial section above.
 
 ## Research design
 
