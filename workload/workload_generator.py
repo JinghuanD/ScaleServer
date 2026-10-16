@@ -11,7 +11,7 @@ import requests
 
 URL = "http://127.0.0.1:8000/work"
 
-# 先做一分钟验证，通过后再改成完整负载
+
 WORKLOAD_PATTERN = [
     (1, 120),
     (2, 120),
@@ -109,7 +109,7 @@ def main():
         print(f"Results directory: {output_dir}", flush=True)
         print("Variable Workload Experiment Started", flush=True)
 
-        # 退出线程池前等待所有已提交请求完成；此时 CSV 仍然打开
+
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             try:
                 for stage, (rate, duration) in enumerate(

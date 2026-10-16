@@ -10,10 +10,17 @@ import baseline_controller as baseline
 
 events = queue.Queue(maxsize=1)
 stop_event = threading.Event()
-action_finished = threading.Event()
-log_lock = threading.Lock()
 
-last_scaling_time = 0.0
+# Set means no action is pending or executing.
+action_finished = threading.Event()
+action_finished.set()
+
+log_lock = threading.Lock()
+state_lock = threading.Lock()
+
+last_scaling_monotonic = float("-inf")
+action_generation = 0
+stop_reason = "time_limit"
 
 RUN_ID = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
 LOG_PATH = (
@@ -39,30 +46,69 @@ def log(kind, **details):
         print(line, flush=True)
 
 
-def monitor():
+def monitor(deadline):
+    global action_generation, stop_reason
+
     high_count = 0
     low_count = 0
     first_threshold_time = None
+    previous_sample_monotonic = None
     sample_number = 0
     action_number = 0
 
     try:
         while not stop_event.is_set():
+            if time.monotonic() >= deadline:
+                break
+
+            with state_lock:
+                generation_before = action_generation
+                pending_before = not action_finished.is_set()
+
+            sample_started = time.perf_counter()
             cpu = baseline.get_average_cpu()
             running = baseline.get_running_containers()
+
+            if stop_event.is_set() or time.monotonic() >= deadline:
+                break
+
             now = time.time()
+            sample_monotonic = time.perf_counter()
             sample_number += 1
+
+            with state_lock:
+                pending_after = not action_finished.is_set()
+                generation_after = action_generation
+                last_completed = last_scaling_monotonic
+
+            overlaps_action = (
+                pending_before
+                or pending_after
+                or generation_before != generation_after
+            )
 
             log(
                 "sample",
                 cpu=cpu,
                 container_count=len(running),
                 sample_number=sample_number,
+                sample_observed_timestamp=now,
+                sampling_seconds=sample_monotonic - sample_started,
+                sample_interval_seconds=(
+                    None
+                    if previous_sample_monotonic is None
+                    else sample_monotonic - previous_sample_monotonic
+                ),
+                action_pending=pending_after,
+                overlaps_action=overlaps_action,
             )
+            previous_sample_monotonic = sample_monotonic
 
+            # Keep sampling while actions execute, but suppress decisions.
             if (
-                cpu is None
-                or now - last_scaling_time < baseline.COOLDOWN
+                overlaps_action
+                or cpu is None
+                or sample_monotonic - last_completed < baseline.COOLDOWN
             ):
                 high_count = low_count = 0
                 first_threshold_time = None
@@ -95,7 +141,11 @@ def monitor():
                     action = "scale_in"
                 low_count = 0
 
-            if action:
+            if (
+                action
+                and not stop_event.is_set()
+                and time.monotonic() < deadline
+            ):
                 action_number += 1
                 created_time = time.time()
 
@@ -111,153 +161,148 @@ def monitor():
                     ),
                 }
 
-                action_finished.clear()
-                log("event_created", **event)
-                events.put(event)
+                with state_lock:
+                    action_finished.clear()
+                    action_generation += 1
 
-                # Only one scaling action may be pending.
-                while not action_finished.wait(0.1):
-                    if stop_event.is_set():
-                        return
+                log("event_created", **event)
+                events.put_nowait(event)
 
                 high_count = low_count = 0
                 first_threshold_time = None
 
-            stop_event.wait(baseline.CHECK_INTERVAL)
+            remaining = deadline - time.monotonic()
+            if remaining > 0:
+                stop_event.wait(min(baseline.CHECK_INTERVAL, remaining))
 
     except Exception as exc:
+        stop_reason = "monitor_error"
         log(
             "monitor_error",
             error=f"{type(exc).__name__}: {exc}",
         )
+
+    finally:
         stop_event.set()
+        log("sampling_stopped", reason=stop_reason)
 
 
 def main():
-    global last_scaling_time
+    global last_scaling_monotonic, stop_reason
 
     LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
     readiness_workers = []
+    deadline = time.monotonic() + baseline.CONTROLLER_SECONDS
 
     print(f"Event log: {LOG_PATH}", flush=True)
 
     log(
         "controller_started",
+        controller_version="slow_action_v3_autostop",
+        monitor_during_action=True,
+        controller_seconds=baseline.CONTROLLER_SECONDS,
         scale_out_threshold=baseline.SCALE_OUT_THRESHOLD,
         scale_in_threshold=baseline.SCALE_IN_THRESHOLD,
         scale_out_samples=baseline.SCALE_OUT_DURATION,
         scale_in_samples=baseline.SCALE_IN_DURATION,
         cooldown_seconds=baseline.COOLDOWN,
         check_interval_seconds=baseline.CHECK_INTERVAL,
+        simulated_action_delay_seconds=(
+            baseline.SIMULATED_ACTION_DELAY_SECONDS
+        ),
     )
 
-    worker = threading.Thread(target=monitor, daemon=True)
+    worker = threading.Thread(
+        target=monitor,
+        args=(deadline,),
+        daemon=True,
+    )
     worker.start()
 
     try:
         while not stop_event.is_set():
+            if time.monotonic() >= deadline:
+                stop_event.set()
+                break
+
             try:
-                event = events.get(timeout=0.5)
+                event = events.get(timeout=0.2)
             except queue.Empty:
                 continue
 
-            received_time = time.time()
-            action = event["action"]
-            action_id = event["action_id"]
-
             try:
+                # Do not start a new action after the time limit.
+                if stop_event.is_set() or time.monotonic() >= deadline:
+                    log(
+                        "action_skipped",
+                        action_id=event["action_id"],
+                        action=event["action"],
+                        reason="controller_stopping",
+                    )
+                    continue
+
+                received_time = time.time()
+
                 log(
                     "event_received",
-                    action_id=action_id,
-                    action=action,
+                    action_id=event["action_id"],
+                    action=event["action"],
                     delivery_seconds=(
                         received_time - event["created_timestamp"]
                     ),
                 )
 
-                before = baseline.get_running_containers()
-                action_started_timestamp = time.time()
-
-                log(
-                    "action_started",
-                    action_id=action_id,
-                    action=action,
-                    before=before,
-                    action_started_timestamp=action_started_timestamp,
+                success = baseline.execute_action(
+                    event,
+                    log,
+                    readiness_workers,
                 )
-
-                command_started = time.perf_counter()
-                reported_success = (
-                    baseline.scale_out()
-                    if action == "scale_out"
-                    else baseline.scale_in()
-                )
-                command_seconds = (
-                    time.perf_counter() - command_started
-                )
-
-                after = baseline.get_running_containers()
-                success = baseline.verify_change(
-                    action, reported_success, before, after
-                )
-                finished_time = time.time()
 
                 if success:
-                    last_scaling_time = finished_time
-
-                log(
-                    "action_finished",
-                    action_id=action_id,
-                    action=action,
-                    success=success,
-                    before=before,
-                    after=after,
-                    command_seconds=command_seconds,
-                    first_threshold_to_finish_seconds=(
-                        finished_time
-                        - event["first_threshold_timestamp"]
-                    ),
-                    decision_to_finish_seconds=(
-                        finished_time - event["created_timestamp"]
-                    ),
-                )
-
-                if success and action == "scale_out":
-                    added = [
-                        name for name in after if name not in before
-                    ]
-                    readiness_workers.extend(
-                        baseline.record_application_readiness(
-                            added,
-                            log,
-                            action_id,
-                            action_started_timestamp,
-                            command_started,
-                        )
-                    )
+                    with state_lock:
+                        last_scaling_monotonic = time.perf_counter()
 
             except Exception as exc:
                 log(
                     "action_error",
-                    action_id=action_id,
-                    action=action,
+                    action_id=event["action_id"],
+                    action=event["action"],
                     error=f"{type(exc).__name__}: {exc}",
                 )
 
             finally:
-                action_finished.set()
+                with state_lock:
+                    action_finished.set()
                 events.task_done()
 
     except KeyboardInterrupt:
-        log("controller_stopped", reason="keyboard_interrupt")
+        stop_reason = "keyboard_interrupt"
 
     finally:
         stop_event.set()
-        action_finished.set()
         worker.join()
+
+        # Record any queued action that was not executed at shutdown.
+        while True:
+            try:
+                pending = events.get_nowait()
+            except queue.Empty:
+                break
+
+            log(
+                "action_skipped",
+                action_id=pending["action_id"],
+                action=pending["action"],
+                reason="controller_stopping",
+            )
+            events.task_done()
+
+        action_finished.set()
 
         for readiness_worker in readiness_workers:
             readiness_worker.join()
+
+        log("controller_stopped", reason=stop_reason)
 
 
 if __name__ == "__main__":

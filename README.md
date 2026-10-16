@@ -147,6 +147,57 @@ Download the [three-run request archive](data/Baseline_Three_Runs_Requests.zip),
 
 Event-driven source data is linked in the three-trial section above.
 
+## Controller Modification and Monitoring Continuity Experiment
+
+The original event-driven controller used separate monitoring and action-execution threads. However, the monitoring thread waited for each scaling action to finish, which prevented CPU sampling during execution. The controller was modified to continue sampling while an action was pending or executing. Additional scaling decisions were suppressed during this period to prevent duplicate actions. Samples overlapping an action were excluded from threshold confirmation, and the existing cooldown policy was retained.
+
+Additional logging recorded sampling duration, sample intervals, and action status. A configurable automatic stopping mechanism was also introduced to limit unnecessary idle logging.
+
+A **10-second artificial delay** was inserted before each scaling command in both controllers. Local scale-out operations normally completed in approximately 0.4-0.6 seconds, making monitoring interruptions difficult to observe against the approximately three-second sampling interval. The injected delay provided a controlled way to test monitoring continuity during slow operations. It was not intended to represent measured cloud provisioning time or demonstrate faster scaling.
+
+Three trials were conducted for each controller using the same scaling thresholds, consecutive-sample requirements, cooldown settings, and injected delay.
+
+| Controller | Trial | Samples during each scale-out action | Samples during each scale-in action | Maximum sampling interval overlapping scaling actions |
+| --- | --- | --- | --- | --- |
+| Baseline | 1 | 0 / 0 | 0 / 0 | 16.588 s |
+| Baseline | 2 | 0 / 0 | 0 / 0 | 16.330 s |
+| Baseline | 3 | 0 / 0 | 0 / 0 | 16.248 s |
+| Event-driven | 1 | 3 / 3 | 4 / 4 | 3.235 s |
+| Event-driven | 2 | 3 / 3 | 4 / 4 | 3.033 s |
+| Event-driven | 3 | 3 / 3 | 4 / 4 | 3.045 s |
+
+Each pair represents the first and second actions of that type. Action intervals were measured from `action_started` to `action_finished`. Sampling intervals are the gaps between consecutive observations; an interval overlaps an action when any part of that gap falls within the action window.
+
+Every trial successfully completed two scale-out and two scale-in actions, following **1 -> 2 -> 3 -> 2 -> 1** containers. No action errors, skipped actions, or application-readiness timeouts were recorded. The first trial used version v2; the subsequent trials used v3, which added automatic stopping and shared action-execution code.
+
+The baseline controller recorded no samples during any scaling action. The modified event-driven controller continued sampling during all 12 actions, including three samples within every injected 10-second delay.
+
+These results demonstrate that the modified event-driven implementation preserves monitoring continuity during slow scaling operations. Its immediate benefit is improved observability: CPU changes remain visible while actions execute. Because these samples do not trigger additional scaling decisions, the experiment does not establish faster load response, lower request latency, or reduced resource consumption.
+
+### Monitoring continuity trial logs
+
+These are separate experiments from the earlier response-time comparison without injected delay.
+
+| Trial | Baseline log | Event-driven log |
+| --- | --- | --- |
+| 1 (v2) | [Baseline 1](data/baseline_20261014_154940_694579.jsonl) | [Event 1](data/event_20261014_212951_095933.jsonl) |
+| 2 (v3) | [Baseline 2](data/baseline_20261016_103537_852144.jsonl) | [Event 2](data/event_20261016_100625_625076.jsonl) |
+| 3 (v3) | [Baseline 3](data/baseline_20261016_112854_444177.jsonl) | [Event 3](data/event_20261016_110536_328907.jsonl) |
+
+### Current runtime settings
+
+Both controllers read `SIMULATED_ACTION_DELAY_SECONDS` (default `0`, allowed range 0-60 seconds) and `CONTROLLER_SECONDS` (default `1200`, a positive finite number) from environment variables. To reproduce the slow-action condition in PowerShell, set these in the terminal running the selected controller:
+
+```powershell
+$env:SIMULATED_ACTION_DELAY_SECONDS = "10"
+$env:CONTROLLER_SECONDS = "1200"
+python controller/event_controller.py
+```
+
+Use `python controller/baseline_controller.py` instead for the baseline; run only one controller at a time. Reset the delay to `0` for ordinary runs. The time limit stops sampling and prevents new actions; shutdown waits for in-flight execution and readiness workers, so process exit may occur after the limit. Start the workload promptly to keep its full duration within the controller window.
+
+The metrics collector now writes a new `data/metrics_<timestamp>.csv` for each invocation and stops after `EXPERIMENT_SECONDS` (currently 1,080 seconds). CPU and container count come from the same Docker snapshot. Its timer is independent of the workload timer; coordinate start times or adjust the duration to cover the complete workload.
+
 ## Research design
 
 The proposed AWS flow is:
@@ -175,7 +226,7 @@ Both the polling baseline and event-driven design are intended to run the same a
 | --- | --- |
 | `controller/baseline_controller.py` | Polls Docker CPU usage and starts or stops pre-existing containers named `app1`, `app2`, and `app3`. |
 | `controller/event_controller.py` | Local event controller: polls CPU in a monitoring thread, queues scaling events for execution, and records structured JSONL logs. |
-| `controller/metrics_collector.py` | Records average CPU usage and running container count to `data/results.csv`. |
+| `controller/metrics_collector.py` | Records average CPU usage and running container count from one Docker snapshot to a timestamped `data/metrics_<timestamp>.csv`. |
 | `loadbalancer/load_balancer.py` | Flask proxy on port 8000 with concurrent backend health checks, locked round-robin selection, and per-request fallback across healthy backends on ports 5000-5002. |
 | `workload/workload_generator.py` | Runs the nine-stage, 18-minute workload; records each request, latency, backend identity, and completion status, then writes a run summary including mean and P95 latency. |
 | `app/` | Docker build definition and current application entry-point file; see the limitation below. |
@@ -206,7 +257,7 @@ python workload/workload_generator.py
 
 Before launching the workload, check `http://127.0.0.1:8000/health` and confirm that its `backends` list is nonempty, then verify that `http://127.0.0.1:8000/work` returns HTTP 200. The proxy health endpoint alone does not guarantee that a backend is available. Backend applications must expose `/health` and `/work`; a JSON `container` field in the work response enables backend attribution.
 
-The baseline starts and stops existing containers; it does not create them. The metrics collector appends to `data/results.csv`; preserve or rotate that file before repeating an experiment. The workload generator creates a new `data/run_<timestamp>/` directory containing `requests.csv` and `summary.json`, and waits for submitted requests to complete before closing the CSV. `data/workload_results.csv` is retained as an earlier-format result file.
+The baseline starts and stops existing containers; it does not create them. The current metrics collector creates `data/metrics_<timestamp>.csv` per run; earlier versions appended to `data/results.csv`. The workload generator creates a new `data/run_<timestamp>/` directory containing `requests.csv` and `summary.json`, and waits for submitted requests to complete before closing the CSV. `data/workload_results.csv` is retained as an earlier-format result file.
 
 For an event-controller experiment, replace `python controller/baseline_controller.py` with `python controller/event_controller.py`; run only one scaling controller at a time. Readiness probes expect HTTP 200 with a JSON `status` of `healthy` from each backend's `/health` endpoint.
 
@@ -218,7 +269,7 @@ The logging system has three parts: **request logs, resource metrics, and contro
 | --- | --- | --- | --- |
 | `data/run_<timestamp>/requests.csv` | Workload generator | Request ID, stage, target rate, timestamps, queue delay, latency, status code, container ID, and errors | Analyze success rate, response time, and request distribution |
 | `summary.json` in the same run directory | Workload generator | Total requests, successful and failed requests, recording completeness, mean and P95 response time, and maximum queue delay | Summarize the experiment |
-| `data/results.csv` | Metrics collector | Sampling time, elapsed time, average CPU utilization, and running container count | Track resource utilization and capacity changes |
+| `data/metrics_<timestamp>.csv` (current); `data/results.csv` (legacy) | Metrics collector | Sampling time, elapsed time, average CPU utilization, and running container count | Track resource utilization and capacity changes |
 | `data/event_<timestamp>.jsonl` | Event controller | CPU samples, event creation and receipt, scaling results, and timing measurements | Analyze scaling triggers and execution |
 | `data/baseline_<timestamp>.jsonl` | Current baseline controller | Structured samples, scaling decisions/actions, readiness observations, and timing measurements | Analyze baseline behavior with controller run/action IDs |
 | Manually saved `baseline_*_controller.log` | Baseline controller console output | CPU utilization, container count, and start/stop actions | Review earlier baseline behavior; older console logs have limited timing detail |
@@ -261,7 +312,7 @@ This is an illustrative trace; the workload stage at which scaling occurs depend
 - Request and event logs use Unix timestamps, while `results.csv` uses local date-time strings without a time-zone offset. Interpret those strings in the recording host's time zone and convert all timestamps to a consistent time zone before analysis.
 - Resource sampling occurs approximately every three seconds in the observed runs. The collector sleeps for one second in addition to Docker command execution time, so the interval is not fixed. The observed container-count change may appear later than the scaling action's completion.
 - `action_finished` verifies Docker state; current controllers separately record application health readiness as `application_ready` after scale-out. Older logs lack this measurement. Docker action completion and application readiness must be compared as distinct endpoints.
-- `results.csv` appends new records. Archive it before each experiment to avoid mixing runs, and restrict analysis to the workload window so that idle monitoring records after the workload ends are excluded.
+- Legacy `results.csv` appended new records and required archival between experiments. Current metrics files are unique per run. Restrict analysis to the workload window to exclude idle monitoring records.
 
 ## Planned evaluation
 
@@ -270,7 +321,7 @@ This is an illustrative trace; the workload stage at which scaling occurs depend
 - Resource efficiency: instance count, scaling operations, and EC2 instance-hours.
 - Controller overhead: metric queries, delivered events, and AWS API calls.
 
-The local scripts currently collect only a subset of these measurements. A local event controller now separates polling-based monitoring from scaling execution through an in-process queue and waits for each action to finish before producing another event. AWS integration, robust duplicate-event handling for external events, and the full comparative evaluation remain future work, including integration with CloudWatch Alarm and EventBridge.
+The local scripts currently collect only a subset of these measurements. A local event controller now separates polling-based monitoring from scaling execution through an in-process queue and continues sampling while an action is pending or executing, suppressing further decisions and excluding overlapping samples from threshold confirmation. AWS integration, robust duplicate-event handling for external events, and the full comparative evaluation remain future work, including integration with CloudWatch Alarm and EventBridge.
 
 ## Project summary
 
