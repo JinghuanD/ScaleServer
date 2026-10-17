@@ -198,6 +198,27 @@ Use `python controller/baseline_controller.py` instead for the baseline; run onl
 
 The metrics collector now writes a new `data/metrics_<timestamp>.csv` for each invocation and stops after `EXPERIMENT_SECONDS` (currently 1,080 seconds). CPU and container count come from the same Docker snapshot. Its timer is independent of the workload timer; coordinate start times or adjust the duration to cover the complete workload.
 
+## Cloud Stage 1: Single-EC2 Deployment Experiment
+
+The autoscaling system was deployed on a **single AWS EC2 instance**, using three Docker containers and a Flask load balancer. Scaling started and stopped containers on that host; it did not provision or terminate EC2 instances or use an AWS Auto Scaling Group.
+
+An initial test that included a **3 requests/s** stage produced many timeouts. The workload was subsequently reduced and calibrated. The final comparison used the same workload for both controllers: **1 request/s for 30 seconds, 2 requests/s for 90 seconds, and 1 request/s for 90 seconds**, producing **300 requests over 210 seconds** per run.
+
+| Metric | Baseline | Event-driven |
+| --- | --- | --- |
+| Successful requests | 300 | 300 |
+| Failed requests | 0 | 0 |
+| Container sequence | 1 -> 2 -> 3 -> 2 -> 1 | 1 -> 2 -> 3 -> 2 -> 1 |
+| Successful scale-out / scale-in actions | 2 / 2 | 2 / 2 |
+| Maximum recorded sampling interval | 13.673 s | 3.638 s |
+| Mean request response time | 1.304 s | 1.532 s |
+
+Both controllers used CPU thresholds of 70% and 30%, consecutive-sample requirements of 5 and 10, and a 15-second cooldown. **No artificial action delay was injected in these cloud runs.** The controller sampling limit was 290 seconds; the maximum intervals above are taken from each controller's recorded samples, rather than a three-trial average.
+
+The event-driven controller continued monitoring during scaling actions, reducing the maximum sampling gap. However, its average request response time was higher. **This experiment demonstrated improved monitoring continuity, but no request-latency advantage.** This is a single calibrated run per controller on one EC2 host; it does not establish a general cloud-performance advantage or validate EC2 instance-level autoscaling.
+
+The [Cloud Stage 1 archive](data/ScaleServer-cloud-stage1.tar.gz) preserves the deployed source snapshot, initial and calibration runs, final request records, resource metrics, and controller logs. Within the archive, the final Baseline request run is `ScaleServer/data/run_20261017_215152_140358/`, paired with `baseline_20261017_215147_165237.jsonl`; the final Event-driven request run is `ScaleServer/data/run_20261017_220047_157933/`, paired with `event_20261017_220042_190861.jsonl`. Earlier tests are retained separately and are excluded from the final comparison above. The archive is an experiment snapshot; its bundled README and smoke-test defaults may reflect earlier stages of calibration.
+
 ## Research design
 
 The proposed AWS flow is:
