@@ -1,0 +1,34 @@
+{
+  "label": "event_step_1",
+  "url": "http://127.0.0.1:8000/work",
+  "workload_pattern": [
+    [
+      1,
+      30
+    ],
+    [
+      2,
+      90
+    ],
+    [
+      4,
+      120
+    ],
+    [
+      0.5,
+      180
+    ]
+  ],
+  "duration_seconds": 420,
+  "submitted": 780,
+  "success": 780,
+  "failed": 0,
+  "mean_success_latency_ms": 478.077346153846,
+  "p95_success_latency_ms": 515.246,
+  "max_dispatch_delay_ms": 2.214,
+  "successful_backends": {
+    "worker-2": 272,
+    "worker-1": 374,
+    "worker-3": 134
+  }
+}

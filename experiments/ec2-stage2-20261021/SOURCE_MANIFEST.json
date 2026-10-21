@@ -1,0 +1,9 @@
+{
+  "source_archive": "/workspace/scratch/ae697d066929/upload/ScaleServer-six-runs-20261021_225653.tar.gz",
+  "source_sha256": "e14c2b521b67ccb476866f31f139523c77557b88a935de5c1cc4bd2caa973d30",
+  "code": {
+    "src/loadbalancer/load_balancer.py": "46b5c35e8ed37565c6e880f9d7ac6494d7345d0f0a321a2754cc08fc74891c27",
+    "src/controller/ec2_controller.py": "4ae3c7875a7f043e643219cc7aa0f95928ea51e7b9a3ed09213183d85257d647",
+    "src/workload/cloud_latency_test.py": "87284a63aeb900a6680c7d3016d606cb695e39909cc2f21373aa787427c09cc4"
+  }
+}

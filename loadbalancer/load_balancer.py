@@ -4,12 +4,27 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 
+
+import json
+from pathlib import Path
+
+DRAIN_FILE = Path(__file__).resolve().parent.parent / "data" / "draining.json"
+
+def backend_enabled(backend):
+    try:
+        disabled = json.loads(DRAIN_FILE.read_text())
+        return backend not in disabled
+    except FileNotFoundError:
+        return True
+    except (OSError, ValueError):
+        return False
+
 app = Flask(__name__)
 
 BACKENDS = [
-    "http://127.0.0.1:5000",
-    "http://127.0.0.1:5001",
-    "http://127.0.0.1:5002",
+    "http://172.31.31.51:5000",
+    "http://172.31.16.38:5000",
+    "http://172.31.16.59:5000",
 ]
 
 healthy_backends = []
@@ -18,6 +33,8 @@ next_index = 0
 
 
 def check_backend(backend):
+    if not backend_enabled(backend):
+        return False
     try:
         response = requests.get(
             backend + "/health",
@@ -65,6 +82,9 @@ def work():
 
     for offset in range(len(available)):
         backend = available[(start + offset) % len(available)]
+
+        if not backend_enabled(backend):
+            continue
 
         try:
             response = requests.get(

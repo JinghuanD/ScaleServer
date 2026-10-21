@@ -1,0 +1,938 @@
+[
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 35.92128539085388,
+    "timestamp": 1792618330.2203236,
+    "kind": "action_started",
+    "action": "scale_out",
+    "worker": "worker-2"
+  },
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 41.03443384170532,
+    "timestamp": 1792618335.333472,
+    "kind": "instance_running",
+    "worker": "worker-2",
+    "action_elapsed": 5.113145664989133
+  },
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 51.051626443862915,
+    "timestamp": 1792618345.3506646,
+    "kind": "application_ready",
+    "worker": "worker-2",
+    "action_elapsed": 15.130340338990209
+  },
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 51.054471015930176,
+    "timestamp": 1792618345.3535092,
+    "kind": "backend_enabled",
+    "worker": "worker-2",
+    "action_elapsed": 15.133184142992832
+  },
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 51.05452036857605,
+    "timestamp": 1792618345.3535585,
+    "kind": "action_finished",
+    "action": "scale_out",
+    "worker": "worker-2",
+    "success": true,
+    "action_seconds": 15.133232759995735,
+    "decision_to_finish_seconds": 15.133278369903564,
+    "threshold_to_finish_seconds": 19.470699310302734
+  },
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 126.23146677017212,
+    "timestamp": 1792618420.530505,
+    "kind": "action_started",
+    "action": "scale_out",
+    "worker": "worker-3"
+  },
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 131.38704776763916,
+    "timestamp": 1792618425.686086,
+    "kind": "instance_running",
+    "worker": "worker-3",
+    "action_elapsed": 5.155578200996388
+  },
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 140.9039649963379,
+    "timestamp": 1792618435.2030032,
+    "kind": "application_ready",
+    "worker": "worker-3",
+    "action_elapsed": 14.67249755600642
+  },
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 140.906898021698,
+    "timestamp": 1792618435.2059362,
+    "kind": "backend_enabled",
+    "worker": "worker-3",
+    "action_elapsed": 14.67542987500201
+  },
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 140.90695238113403,
+    "timestamp": 1792618435.2059906,
+    "kind": "action_finished",
+    "action": "scale_out",
+    "worker": "worker-3",
+    "success": true,
+    "action_seconds": 14.675483230996178,
+    "decision_to_finish_seconds": 14.675531387329102,
+    "threshold_to_finish_seconds": 18.93412184715271
+  },
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 251.9494490623474,
+    "timestamp": 1792618546.2484872,
+    "kind": "action_started",
+    "action": "scale_in",
+    "worker": "worker-3"
+  },
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 252.01494717597961,
+    "timestamp": 1792618546.3139853,
+    "kind": "backend_draining",
+    "worker": "worker-3"
+  },
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 308.20628476142883,
+    "timestamp": 1792618602.505323,
+    "kind": "instance_stopped",
+    "worker": "worker-3"
+  },
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 308.20636463165283,
+    "timestamp": 1792618602.5054028,
+    "kind": "action_finished",
+    "action": "scale_in",
+    "worker": "worker-3",
+    "success": true,
+    "action_seconds": 56.25691316000302,
+    "decision_to_finish_seconds": 56.25695991516113,
+    "threshold_to_finish_seconds": 65.8758795261383
+  },
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 357.85517144203186,
+    "timestamp": 1792618652.1542096,
+    "kind": "action_started",
+    "action": "scale_in",
+    "worker": "worker-2"
+  },
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 357.9147753715515,
+    "timestamp": 1792618652.2138135,
+    "kind": "backend_draining",
+    "worker": "worker-2"
+  },
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 409.9794855117798,
+    "timestamp": 1792618704.2785237,
+    "kind": "instance_stopped",
+    "worker": "worker-2"
+  },
+  {
+    "label": "baseline_step_1",
+    "relative_to_load_s": 409.9795699119568,
+    "timestamp": 1792618704.278608,
+    "kind": "action_finished",
+    "action": "scale_in",
+    "worker": "worker-2",
+    "success": true,
+    "action_seconds": 52.12439517299936,
+    "decision_to_finish_seconds": 52.124444007873535,
+    "threshold_to_finish_seconds": 61.87444853782654
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 35.7342643737793,
+    "timestamp": 1792621386.1564088,
+    "kind": "action_started",
+    "action": "scale_out",
+    "worker": "worker-2"
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 40.98484945297241,
+    "timestamp": 1792621391.4069939,
+    "kind": "instance_running",
+    "worker": "worker-2",
+    "action_elapsed": 5.250582852997468
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 50.50184202194214,
+    "timestamp": 1792621400.9239864,
+    "kind": "application_ready",
+    "worker": "worker-2",
+    "action_elapsed": 14.767576074998942
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 50.50485968589783,
+    "timestamp": 1792621400.927004,
+    "kind": "backend_enabled",
+    "worker": "worker-2",
+    "action_elapsed": 14.770594461995643
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 50.50490856170654,
+    "timestamp": 1792621400.927053,
+    "kind": "action_finished",
+    "action": "scale_out",
+    "worker": "worker-2",
+    "success": true,
+    "action_seconds": 14.770640565999201,
+    "decision_to_finish_seconds": 14.770686626434326,
+    "threshold_to_finish_seconds": 19.027016162872314
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 125.31801271438599,
+    "timestamp": 1792621475.7401571,
+    "kind": "action_started",
+    "action": "scale_out",
+    "worker": "worker-3"
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 130.40438222885132,
+    "timestamp": 1792621480.8265266,
+    "kind": "instance_running",
+    "worker": "worker-3",
+    "action_elapsed": 5.086366892996011
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 138.91964673995972,
+    "timestamp": 1792621489.3417912,
+    "kind": "application_ready",
+    "worker": "worker-3",
+    "action_elapsed": 13.601632902995334
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 138.92233204841614,
+    "timestamp": 1792621489.3444765,
+    "kind": "backend_enabled",
+    "worker": "worker-3",
+    "action_elapsed": 13.604317877005087
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 138.92237830162048,
+    "timestamp": 1792621489.3445227,
+    "kind": "action_finished",
+    "action": "scale_out",
+    "worker": "worker-3",
+    "success": true,
+    "action_seconds": 13.604362703001243,
+    "decision_to_finish_seconds": 13.604408264160156,
+    "threshold_to_finish_seconds": 17.870145559310913
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 251.56662797927856,
+    "timestamp": 1792621601.9887724,
+    "kind": "action_started",
+    "action": "scale_in",
+    "worker": "worker-3"
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 251.63283705711365,
+    "timestamp": 1792621602.0549815,
+    "kind": "backend_draining",
+    "worker": "worker-3"
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 305.90722155570984,
+    "timestamp": 1792621656.329366,
+    "kind": "instance_stopped",
+    "worker": "worker-3"
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 305.9073066711426,
+    "timestamp": 1792621656.329451,
+    "kind": "action_finished",
+    "action": "scale_in",
+    "worker": "worker-3",
+    "success": true,
+    "action_seconds": 54.340674002000014,
+    "decision_to_finish_seconds": 54.34072184562683,
+    "threshold_to_finish_seconds": 63.94939589500427
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 345.52306604385376,
+    "timestamp": 1792621695.9452105,
+    "kind": "action_started",
+    "action": "scale_in",
+    "worker": "worker-2"
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 345.57852053642273,
+    "timestamp": 1792621696.000665,
+    "kind": "backend_draining",
+    "worker": "worker-2"
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 410.0492043495178,
+    "timestamp": 1792621760.4713488,
+    "kind": "instance_stopped",
+    "worker": "worker-2"
+  },
+  {
+    "label": "baseline_step_2",
+    "relative_to_load_s": 410.0492842197418,
+    "timestamp": 1792621760.4714286,
+    "kind": "action_finished",
+    "action": "scale_in",
+    "worker": "worker-2",
+    "success": true,
+    "action_seconds": 64.52621526599978,
+    "decision_to_finish_seconds": 64.52626132965088,
+    "threshold_to_finish_seconds": 74.14114999771118
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 36.2927770614624,
+    "timestamp": 1792622047.9574814,
+    "kind": "action_started",
+    "action": "scale_out",
+    "worker": "worker-2"
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 41.434377908706665,
+    "timestamp": 1792622053.0990822,
+    "kind": "instance_running",
+    "worker": "worker-2",
+    "action_elapsed": 5.14159906101122
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 50.45320677757263,
+    "timestamp": 1792622062.117911,
+    "kind": "application_ready",
+    "worker": "worker-2",
+    "action_elapsed": 14.160428589006187
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 53.463616371154785,
+    "timestamp": 1792622065.1283207,
+    "kind": "backend_enabled",
+    "worker": "worker-2",
+    "action_elapsed": 17.17083796900988
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 53.46366620063782,
+    "timestamp": 1792622065.1283705,
+    "kind": "action_finished",
+    "action": "scale_out",
+    "worker": "worker-2",
+    "success": true,
+    "action_seconds": 17.170886424006312,
+    "decision_to_finish_seconds": 17.170932292938232,
+    "threshold_to_finish_seconds": 21.424280881881714
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 126.32768297195435,
+    "timestamp": 1792622137.9923873,
+    "kind": "action_started",
+    "action": "scale_out",
+    "worker": "worker-3"
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 131.39592123031616,
+    "timestamp": 1792622143.0606256,
+    "kind": "instance_running",
+    "worker": "worker-3",
+    "action_elapsed": 5.068236206992879
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 142.41425347328186,
+    "timestamp": 1792622154.0789578,
+    "kind": "application_ready",
+    "worker": "worker-3",
+    "action_elapsed": 16.086569695995422
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 142.41725134849548,
+    "timestamp": 1792622154.0819557,
+    "kind": "backend_enabled",
+    "worker": "worker-3",
+    "action_elapsed": 16.08956656299415
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 142.4172990322113,
+    "timestamp": 1792622154.0820034,
+    "kind": "action_finished",
+    "action": "scale_out",
+    "worker": "worker-3",
+    "success": true,
+    "action_seconds": 16.08961400599219,
+    "decision_to_finish_seconds": 16.089660167694092,
+    "threshold_to_finish_seconds": 20.350012063980103
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 251.93619680404663,
+    "timestamp": 1792622263.6009011,
+    "kind": "action_started",
+    "action": "scale_in",
+    "worker": "worker-3"
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 251.98809909820557,
+    "timestamp": 1792622263.6528034,
+    "kind": "backend_draining",
+    "worker": "worker-3"
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 306.18217730522156,
+    "timestamp": 1792622317.8468816,
+    "kind": "instance_stopped",
+    "worker": "worker-3"
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 306.1822657585144,
+    "timestamp": 1792622317.84697,
+    "kind": "action_finished",
+    "action": "scale_in",
+    "worker": "worker-3",
+    "success": true,
+    "action_seconds": 54.246065330997226,
+    "decision_to_finish_seconds": 54.24611234664917,
+    "threshold_to_finish_seconds": 63.89360022544861
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 356.43275451660156,
+    "timestamp": 1792622368.0974588,
+    "kind": "action_started",
+    "action": "scale_in",
+    "worker": "worker-2"
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 356.49454164505005,
+    "timestamp": 1792622368.159246,
+    "kind": "backend_draining",
+    "worker": "worker-2"
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 412.65919375419617,
+    "timestamp": 1792622424.323898,
+    "kind": "instance_stopped",
+    "worker": "worker-2"
+  },
+  {
+    "label": "baseline_step_3",
+    "relative_to_load_s": 412.6592791080475,
+    "timestamp": 1792622424.3239834,
+    "kind": "action_finished",
+    "action": "scale_in",
+    "worker": "worker-2",
+    "success": true,
+    "action_seconds": 56.22652150699287,
+    "decision_to_finish_seconds": 56.22656726837158,
+    "threshold_to_finish_seconds": 65.86702156066895
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 36.34577250480652,
+    "timestamp": 1792619758.8190665,
+    "kind": "action_started",
+    "action": "scale_out",
+    "worker": "worker-2"
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 41.4074125289917,
+    "timestamp": 1792619763.8807065,
+    "kind": "instance_running",
+    "worker": "worker-2",
+    "action_elapsed": 5.061639079009183
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 51.42428517341614,
+    "timestamp": 1792619773.8975792,
+    "kind": "application_ready",
+    "worker": "worker-2",
+    "action_elapsed": 15.078513093001675
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 51.42695093154907,
+    "timestamp": 1792619773.900245,
+    "kind": "backend_enabled",
+    "worker": "worker-2",
+    "action_elapsed": 15.08117799500178
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 51.427000522613525,
+    "timestamp": 1792619773.9002945,
+    "kind": "action_finished",
+    "action": "scale_out",
+    "worker": "worker-2",
+    "success": true,
+    "action_seconds": 15.081226408001385,
+    "decision_to_finish_seconds": 15.081498622894287,
+    "threshold_to_finish_seconds": 19.34395408630371
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 126.1315050125122,
+    "timestamp": 1792619848.604799,
+    "kind": "action_started",
+    "action": "scale_out",
+    "worker": "worker-3"
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 131.3142499923706,
+    "timestamp": 1792619853.787544,
+    "kind": "instance_running",
+    "worker": "worker-3",
+    "action_elapsed": 5.182743352997932
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 140.32983994483948,
+    "timestamp": 1792619862.803134,
+    "kind": "application_ready",
+    "worker": "worker-3",
+    "action_elapsed": 14.198335474997293
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 140.33225297927856,
+    "timestamp": 1792619862.805547,
+    "kind": "backend_enabled",
+    "worker": "worker-3",
+    "action_elapsed": 14.200748233997729
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 140.33230233192444,
+    "timestamp": 1792619862.8055964,
+    "kind": "action_finished",
+    "action": "scale_out",
+    "worker": "worker-3",
+    "success": true,
+    "action_seconds": 14.200796623990755,
+    "decision_to_finish_seconds": 14.201037168502808,
+    "threshold_to_finish_seconds": 18.57330846786499
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 251.40679383277893,
+    "timestamp": 1792619973.8800879,
+    "kind": "action_started",
+    "action": "scale_in",
+    "worker": "worker-3"
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 251.4730682373047,
+    "timestamp": 1792619973.9463623,
+    "kind": "backend_draining",
+    "worker": "worker-3"
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 307.532897233963,
+    "timestamp": 1792620030.0061913,
+    "kind": "instance_stopped",
+    "worker": "worker-3"
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 307.5329873561859,
+    "timestamp": 1792620030.0062814,
+    "kind": "action_finished",
+    "action": "scale_in",
+    "worker": "worker-3",
+    "success": true,
+    "action_seconds": 56.12619189999532,
+    "decision_to_finish_seconds": 56.12641263008118,
+    "threshold_to_finish_seconds": 65.74788284301758
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 364.1176266670227,
+    "timestamp": 1792620086.5909207,
+    "kind": "action_started",
+    "action": "scale_in",
+    "worker": "worker-2"
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 364.17656564712524,
+    "timestamp": 1792620086.6498597,
+    "kind": "backend_draining",
+    "worker": "worker-2"
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 418.59673404693604,
+    "timestamp": 1792620141.070028,
+    "kind": "instance_stopped",
+    "worker": "worker-2"
+  },
+  {
+    "label": "event_step_1",
+    "relative_to_load_s": 418.5968244075775,
+    "timestamp": 1792620141.0701184,
+    "kind": "action_finished",
+    "action": "scale_in",
+    "worker": "worker-2",
+    "success": true,
+    "action_seconds": 54.479195991996676,
+    "decision_to_finish_seconds": 54.47943377494812,
+    "threshold_to_finish_seconds": 64.13086485862732
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 36.056394815444946,
+    "timestamp": 1792620689.4671304,
+    "kind": "action_started",
+    "action": "scale_out",
+    "worker": "worker-2"
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 41.07388377189636,
+    "timestamp": 1792620694.4846194,
+    "kind": "instance_running",
+    "worker": "worker-2",
+    "action_elapsed": 5.017488472993136
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 50.59120583534241,
+    "timestamp": 1792620704.0019414,
+    "kind": "application_ready",
+    "worker": "worker-2",
+    "action_elapsed": 14.53481113599264
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 50.59459829330444,
+    "timestamp": 1792620704.005334,
+    "kind": "backend_enabled",
+    "worker": "worker-2",
+    "action_elapsed": 14.538203438001801
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 50.59465432167053,
+    "timestamp": 1792620704.00539,
+    "kind": "action_finished",
+    "action": "scale_out",
+    "worker": "worker-2",
+    "success": true,
+    "action_seconds": 14.538257077991148,
+    "decision_to_finish_seconds": 14.53854513168335,
+    "threshold_to_finish_seconds": 18.807676792144775
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 125.75774550437927,
+    "timestamp": 1792620779.168481,
+    "kind": "action_started",
+    "action": "scale_out",
+    "worker": "worker-3"
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 135.16779088974,
+    "timestamp": 1792620788.5785265,
+    "kind": "instance_running",
+    "worker": "worker-3",
+    "action_elapsed": 9.410043020994635
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 143.1842064857483,
+    "timestamp": 1792620796.594942,
+    "kind": "application_ready",
+    "worker": "worker-3",
+    "action_elapsed": 17.4264610120008
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 143.1868498325348,
+    "timestamp": 1792620796.5975854,
+    "kind": "backend_enabled",
+    "worker": "worker-3",
+    "action_elapsed": 17.429104209993966
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 143.18689727783203,
+    "timestamp": 1792620796.597633,
+    "kind": "action_finished",
+    "action": "scale_out",
+    "worker": "worker-3",
+    "success": true,
+    "action_seconds": 17.429150302006747,
+    "decision_to_finish_seconds": 17.429367542266846,
+    "threshold_to_finish_seconds": 21.710408210754395
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 260.30238676071167,
+    "timestamp": 1792620913.7131224,
+    "kind": "action_started",
+    "action": "scale_in",
+    "worker": "worker-3"
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 260.37163066864014,
+    "timestamp": 1792620913.7823663,
+    "kind": "backend_draining",
+    "worker": "worker-3"
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 314.42090606689453,
+    "timestamp": 1792620967.8316417,
+    "kind": "instance_stopped",
+    "worker": "worker-3"
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 314.42098236083984,
+    "timestamp": 1792620967.831718,
+    "kind": "action_finished",
+    "action": "scale_in",
+    "worker": "worker-3",
+    "success": true,
+    "action_seconds": 54.11859388300218,
+    "decision_to_finish_seconds": 54.11882710456848,
+    "threshold_to_finish_seconds": 63.74282431602478
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 383.48002099990845,
+    "timestamp": 1792621036.8907566,
+    "kind": "action_started",
+    "action": "scale_in",
+    "worker": "worker-2"
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 383.56080079078674,
+    "timestamp": 1792621036.9715364,
+    "kind": "backend_draining",
+    "worker": "worker-2"
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 439.6743953227997,
+    "timestamp": 1792621093.085131,
+    "kind": "instance_stopped",
+    "worker": "worker-2"
+  },
+  {
+    "label": "event_step_2",
+    "relative_to_load_s": 439.6744751930237,
+    "timestamp": 1792621093.0852108,
+    "kind": "action_finished",
+    "action": "scale_in",
+    "worker": "worker-2",
+    "success": true,
+    "action_seconds": 56.194452615003684,
+    "decision_to_finish_seconds": 56.19468808174133,
+    "threshold_to_finish_seconds": 65.7885410785675
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 35.02448487281799,
+    "timestamp": 1792622791.2540348,
+    "kind": "action_started",
+    "action": "scale_out",
+    "worker": "worker-2"
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 40.03677177429199,
+    "timestamp": 1792622796.2663217,
+    "kind": "instance_running",
+    "worker": "worker-2",
+    "action_elapsed": 5.01228708299459
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 50.05333852767944,
+    "timestamp": 1792622806.2828884,
+    "kind": "application_ready",
+    "worker": "worker-2",
+    "action_elapsed": 15.028855519994977
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 50.05593466758728,
+    "timestamp": 1792622806.2854846,
+    "kind": "backend_enabled",
+    "worker": "worker-2",
+    "action_elapsed": 15.031450904993108
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 50.05598306655884,
+    "timestamp": 1792622806.285533,
+    "kind": "action_finished",
+    "action": "scale_out",
+    "worker": "worker-2",
+    "success": true,
+    "action_seconds": 15.031497713993303,
+    "decision_to_finish_seconds": 15.031831979751587,
+    "threshold_to_finish_seconds": 19.278605699539185
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 126.0278377532959,
+    "timestamp": 1792622882.2573876,
+    "kind": "action_started",
+    "action": "scale_out",
+    "worker": "worker-3"
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 131.19005846977234,
+    "timestamp": 1792622887.4196084,
+    "kind": "instance_running",
+    "worker": "worker-3",
+    "action_elapsed": 5.162221905004117
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 139.70558881759644,
+    "timestamp": 1792622895.9351387,
+    "kind": "application_ready",
+    "worker": "worker-3",
+    "action_elapsed": 13.677753486001166
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 139.7083601951599,
+    "timestamp": 1792622895.93791,
+    "kind": "backend_enabled",
+    "worker": "worker-3",
+    "action_elapsed": 13.680524916999275
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 139.70840907096863,
+    "timestamp": 1792622895.937959,
+    "kind": "action_finished",
+    "action": "scale_out",
+    "worker": "worker-3",
+    "success": true,
+    "action_seconds": 13.68057230199338,
+    "decision_to_finish_seconds": 13.685964345932007,
+    "threshold_to_finish_seconds": 18.009945392608643
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 258.3565351963043,
+    "timestamp": 1792623014.586085,
+    "kind": "action_started",
+    "action": "scale_in",
+    "worker": "worker-3"
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 258.41451692581177,
+    "timestamp": 1792623014.6440668,
+    "kind": "backend_draining",
+    "worker": "worker-3"
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 310.37577748298645,
+    "timestamp": 1792623066.6053274,
+    "kind": "instance_stopped",
+    "worker": "worker-3"
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 310.3758633136749,
+    "timestamp": 1792623066.6054132,
+    "kind": "action_finished",
+    "action": "scale_in",
+    "worker": "worker-3",
+    "success": true,
+    "action_seconds": 52.019326813999214,
+    "decision_to_finish_seconds": 52.01956510543823,
+    "threshold_to_finish_seconds": 61.675880670547485
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 350.94842004776,
+    "timestamp": 1792623107.17797,
+    "kind": "action_started",
+    "action": "scale_in",
+    "worker": "worker-2"
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 351.0055549144745,
+    "timestamp": 1792623107.2351048,
+    "kind": "backend_draining",
+    "worker": "worker-2"
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 407.1413586139679,
+    "timestamp": 1792623163.3709085,
+    "kind": "instance_stopped",
+    "worker": "worker-2"
+  },
+  {
+    "label": "event_step_3",
+    "relative_to_load_s": 407.14144706726074,
+    "timestamp": 1792623163.370997,
+    "kind": "action_finished",
+    "action": "scale_in",
+    "worker": "worker-2",
+    "success": true,
+    "action_seconds": 56.193024762003915,
+    "decision_to_finish_seconds": 56.193251848220825,
+    "threshold_to_finish_seconds": 65.77442383766174
+  }
+]
