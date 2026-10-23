@@ -1,0 +1,18 @@
+{
+  "label": "event_sync_1",
+  "mode": "event",
+  "controller_seconds": 480,
+  "startup_delay_seconds": 5,
+  "initial_states": {
+    "i-03235d48b9bf84eca": "running",
+    "i-05a0a0812d4eb1b71": "stopped",
+    "i-04b959c555e519d17": "stopped"
+  },
+  "status": "completed",
+  "controller_launch_timestamp": 1792709674.1918867,
+  "workload_launch_timestamp": 1792709679.1994007,
+  "observed_launch_gap_seconds": 5.007514371012803,
+  "workload_returncode": 0,
+  "controller_returncode": 0,
+  "finished_timestamp": 1792710155.2824185
+}

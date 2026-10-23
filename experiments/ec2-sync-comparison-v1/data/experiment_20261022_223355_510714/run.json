@@ -1,0 +1,18 @@
+{
+  "label": "baseline_sync_1",
+  "mode": "baseline",
+  "controller_seconds": 480,
+  "startup_delay_seconds": 5,
+  "initial_states": {
+    "i-03235d48b9bf84eca": "running",
+    "i-05a0a0812d4eb1b71": "stopped",
+    "i-04b959c555e519d17": "stopped"
+  },
+  "status": "completed",
+  "controller_launch_timestamp": 1792708435.5110505,
+  "workload_launch_timestamp": 1792708440.5423243,
+  "observed_launch_gap_seconds": 5.03127432797919,
+  "workload_returncode": 0,
+  "controller_returncode": 0,
+  "finished_timestamp": 1792708916.623882
+}

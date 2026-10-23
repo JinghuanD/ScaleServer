@@ -254,6 +254,54 @@ Three trials per mode are a limited sample. The controller and load generator sh
 
 Full source snapshot, English runbook, request records, controller logs, and derived results are available in [the Stage 2 experiment directory](experiments/ec2-stage2-20261021/README.md). The supplied snapshot lacks deployed worker application/metrics-agent sources and deployment configuration, so it is not a complete from-scratch deployment package.
 
+## Synchronized EC2 Comparison and Request Diagnostics
+
+Version: `ec2-sync-comparison-v1`.
+
+### Changes
+
+- Added request tracing between the workload generator and load balancer using `X-Request-ID`.
+- Recorded application processing time, backend forwarding time, forwarding attempts, and per-request diagnostic logs.
+- Added an experiment runner with initial-state checks, an approximately five-second controller-to-workload launch interval, and saved process logs.
+- Kept the scaling thresholds, cooldown, drain period, and workload unchanged.
+
+### Experimental results
+
+All runs used the same workload: **1 rps for 30 s -> 2 rps for 90 s -> 4 rps for 120 s -> 0.5 rps for 180 s**. Each submitted 780 requests over 420 seconds. Controllers ran for 480 seconds, with the workload launched approximately five seconds later. Recorded launch intervals were 5.008-5.031 seconds.
+
+| Run | Successful requests | Mean latency (ms) | P95 latency (ms) | Samples | Maximum sample interval (s) | Samples during pending actions |
+| --- | --- | --- | --- | --- | --- | --- |
+| baseline_sync_1 | 780/780 | 536.23 | 1061.43 | 317 | 57.57 | 0 |
+| event_sync_1 | 780/780 | 468.98 | 499.31 | 444 | 1.61 | 125 |
+| event_sync_2 | 780/780 | 487.70 | 566.41 | 443 | 1.66 | 134 |
+| baseline_sync_2 | 780/780 | 467.67 | 495.22 | 314 | 59.33 | 0 |
+
+| Scaling metric | Baseline | Event-driven |
+| --- | --- | --- |
+| Successful scaling actions | 8/8 | 8/8 |
+| Scale-out action duration | 14.58-15.11 s | 14.60-15.23 s |
+| Scale-in action duration | 54.13-58.23 s | 54.07-64.38 s |
+
+Scale-in durations include the configured **35-second drain period**. Action durations measure controller execution through completion, rather than AWS API response time alone. Sampling statistics cover each controller log, including time outside the request workload. P95 values are calculated per trial using the nearest-rank method.
+
+### Validation
+
+The four synchronized experiments ran in the order **Baseline -> Event -> Event -> Baseline**. All **3,120 requests succeeded**, and each run completed two scale-outs and two scale-ins, totaling **16 successful actions**. All request trace IDs matched the returned trace IDs and entries in the downloaded load-balancer diagnostics.
+
+The baseline recorded 314-317 samples per run, with maximum gaps of 57.57-59.33 seconds. Event mode recorded 443-444 samples, with maximum gaps of 1.61-1.66 seconds and 125-134 samples while actions were pending. Scale-out durations were similar, approximately 14.6-15.2 seconds.
+
+### Findings
+
+Event mode maintained monitoring during scaling operations, while baseline paused sampling during synchronous execution. Request latency did not show a consistent winner: Event had lower mean and P95 latency in the first comparison, while Baseline had lower latency in the second. These runs do not establish a consistent latency advantage or faster instance startup for either mode.
+
+The event controller continues sampling during actions but suppresses new scaling decisions until the pending action finishes. The experiment validates monitoring continuity rather than adaptive action cancellation or concurrent scaling decisions.
+
+### Limitations and next step
+
+There were two runs per mode, and the workload generator shared the controller EC2 instance. Treat these results as descriptive rather than evidence of statistical significance. The planned next experiment introduces a load rebound during scale-in draining to measure how each controller observes and responds to changing load; it has not been run as part of this update.
+
+Full evidence, source snapshot, and runner instructions: [synchronized EC2 comparison](experiments/ec2-sync-comparison-v1/README.md).
+
 ## Research design
 
 The proposed AWS flow is:
@@ -277,6 +325,8 @@ After receiving an event, the planned controller queries the current metric stat
 Both the polling baseline and event-driven design are intended to run the same application and workload profiles: stable traffic, a 50 -> 300 -> 50 requests/second step workload, and an optional 500 requests/second spike. These are proposed experiment settings, not the current generator defaults.
 
 ## Current implementation
+
+The latest synchronized-run workflow is documented in [the comparison runbook](experiments/ec2-sync-comparison-v1/README.md#running-on-the-existing-deployment). `workload/run_cloud_experiment.py` performs initial checks and launches the controller and workload together.
 
 The current cloud implementation uses `controller/ec2_controller.py` (baseline/event modes), `loadbalancer/load_balancer.py` (EC2 worker routing and draining), and `workload/cloud_latency_test.py`. Follow the [Stage 2 runbook](experiments/ec2-stage2-20261021/RUNBOOK.md) for the existing cloud deployment. The local Docker tools and instructions below describe historical experiments.
 
