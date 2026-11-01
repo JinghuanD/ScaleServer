@@ -1,0 +1,29 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadMetricsAndCapacity",
+      "Effect": "Allow",
+      "Action": ["cloudwatch:GetMetricStatistics", "autoscaling:DescribeAutoScalingGroups", "elasticloadbalancing:DescribeTargetHealth"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "WriteOnlyExperimentASG",
+      "Effect": "Allow",
+      "Action": "autoscaling:SetDesiredCapacity",
+      "Resource": "arn:aws:autoscaling:us-east-2:000000000000:autoScalingGroup:*:autoScalingGroupName/scaleserver-asg"
+    },
+    {
+      "Sid": "ControllerState",
+      "Effect": "Allow",
+      "Action": ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"],
+      "Resource": "arn:aws:dynamodb:us-east-2:000000000000:table/scaleserver-controller-state"
+    },
+    {
+      "Sid": "RecheckQueue",
+      "Effect": "Allow",
+      "Action": ["sqs:SendMessage", "sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"],
+      "Resource": "arn:aws:sqs:us-east-2:000000000000:scaleserver-recheck"
+    }
+  ]
+}

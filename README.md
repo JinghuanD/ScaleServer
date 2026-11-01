@@ -4,7 +4,47 @@
 
 ScaleServer is an experimental project investigating how event-driven auto scaling compares with a periodic polling baseline under identical, reproducible HTTP workloads. The goal is to measure scaling responsiveness, application performance, resource efficiency, and controller overhead rather than assume that one architecture performs better.
 
-The project direction follows Jinghuan Ding's proposal, *Event-Driven Auto Scaling Controller for AWS EC2*. This repository currently contains a local Docker polling baseline, a local event controller, and experiment tooling; direct EC2 start/stop control is now implemented, while CloudWatch/EventBridge integration remains planned work.
+The project direction follows Jinghuan Ding's proposal, *Event-Driven Auto Scaling Controller for AWS EC2*. This repository currently contains a local Docker polling baseline, a local event controller, and experiment tooling; the latest stage implements ALB/ASG capacity control through Lambda, with scheduled polling or CloudWatch/EventBridge triggers and SQS rechecks.
+
+## AWS RequestCount Comparison: ALB, ASG, and Lambda
+
+Publication scope: this update includes sanitized controller code and aggregate results only. Raw AWS logs, alarm histories, deployment manifests, and original archives are retained locally and are not published.
+
+The latest implementation uses a shared Lambda controller with an ALB/ASG deployment. Polling evaluates every 60 seconds; event mode is triggered by CloudWatch Alarm state changes through EventBridge and uses SQS delayed rechecks. DynamoDB coordinates locking, duplicate handling, and scaling intent. This is a separate experimental stage from the earlier CPU-based fixed-worker controllers.
+
+Six interleaved runs used **0.5 req/s for 240 s -> 1.8 req/s for 600 s -> 0.5 req/s for 600 s**. Each run completed **1,500 successful requests**, with no failures; health observations recorded capacity **1 -> 2 -> 1**.
+
+| Average across three runs | Polling | Event-driven |
+| --- | --- | --- |
+| Mean request latency | 493 ms | 509 ms |
+| Average per-run P95 | 539 ms | 688 ms |
+| Metric queries | 24 | 10.7 |
+| Explicit SDK calls | 233.7 | 106.3 |
+| Load increase to expansion request | 234.9 s | 342.3 s |
+| Load decrease to contraction request | 154.9 s | 221.5 s |
+
+Event mode reduced metric queries by **55.6%** and explicit SDK calls by **54.5%**, but requested expansion approximately **107 seconds later** and contraction **67 seconds later**. Most expansion delay preceded the CloudWatch ALARM transition; evaluation began about 1.2 seconds after that transition. The latter interval includes delivery, Lambda startup, and pre-evaluation processing, not pure EventBridge transmission time. Event-01 and Event-03 then required an additional roughly 60-second recheck.
+
+Both modes use the same capacity policy, but event mode has an additional alarm-confirmation stage. These six runs compare complete implementations rather than isolating the trigger mechanism. Three runs per mode do not establish statistical significance; explicit SDK counts are not total AWS cost, health readiness is sampled, and the P95 aggregate is an average of run-level percentiles.
+
+See the [full English deployment rationale, delay analysis, limitations, and public aggregates](experiments/aws-requestcount-20261030/README.md) and [current controller package](cloud/polling_event/README.md). The required deployed workload calibration module was not supplied; the package is not independently sufficient to reproduce the full deployment. Historical experiments below remain unchanged and must not be pooled with this comparison.
+
+### Polling interval sensitivity: 120-second baseline
+
+A separately conducted three-run Polling-120 comparison retained the same workload, 60-second metric windows, confirmation rule, and cooldown. The supplied summary reports 1,500 successful requests per run, no failures, and capacity 1 -> 2 -> 1.
+
+| Average across three runs | Polling-60 | Polling-120 | Event-driven |
+| --- | --- | --- | --- |
+| Mean request latency | 493 ms | 506 ms | 509 ms |
+| Average per-run P95 | 539 ms | 582 ms | 688 ms |
+| Metric queries | 24 | 12 | 10.7 |
+| Explicit SDK calls | 233.7 | 120.0 | 106.3 |
+| Load increase to expansion request | 234.9 s | 240.6 s | 342.3 s |
+| Load decrease to contraction request | 154.9 s | 200.8 s | 221.5 s |
+
+Polling-120 halved metric queries and reduced explicit SDK calls by approximately **48.6%** compared with Polling-60. Event mode's explicit API-call advantage narrowed to **11.4%** against Polling-120, while Polling-120 requested expansion approximately **101.7 seconds earlier**. The observed 5.7-second expansion-delay increase over Polling-60 does not show that longer polling intervals have negligible costs: scheduling phase, metric availability, and variation matter. Contraction delay increased by approximately 45.9 seconds.
+
+A separate Polling-60 reference run had 1,500 successful requests, a mean of 494 ms, and P95 of 531 ms. It is a limited consistency check, not an additional run in the original averages. **New raw logs were not supplied with this update; these additional results are reported from the supplied summary.** See [the full sensitivity analysis and limitations](experiments/aws-requestcount-20261030/README.md#polling-interval-sensitivity-analysis). The original six-run evidence and code defaults are unchanged.
 
 ## Baseline experiment: local Docker auto-scaling
 
@@ -326,7 +366,9 @@ Both the polling baseline and event-driven design are intended to run the same a
 
 ## Current implementation
 
-The latest synchronized-run workflow is documented in [the comparison runbook](experiments/ec2-sync-comparison-v1/README.md#running-on-the-existing-deployment). `workload/run_cloud_experiment.py` performs initial checks and launches the controller and workload together.
+The latest AWS-native package is [cloud/polling_event](cloud/polling_event/README.md). The fixed-worker scripts below support historical experiments.
+
+The earlier synchronized-run workflow is documented in [the comparison runbook](experiments/ec2-sync-comparison-v1/README.md#running-on-the-existing-deployment). `workload/run_cloud_experiment.py` performs initial checks and launches the controller and workload together.
 
 The current cloud implementation uses `controller/ec2_controller.py` (baseline/event modes), `loadbalancer/load_balancer.py` (EC2 worker routing and draining), and `workload/cloud_latency_test.py`. Follow the [Stage 2 runbook](experiments/ec2-stage2-20261021/RUNBOOK.md) for the existing cloud deployment. The local Docker tools and instructions below describe historical experiments.
 
@@ -429,10 +471,10 @@ This is an illustrative trace; the workload stage at which scaling occurs depend
 - Resource efficiency: instance count, scaling operations, and EC2 instance-hours.
 - Controller overhead: metric queries, delivered events, and AWS API calls.
 
-The local scripts currently collect only a subset of these measurements. A local event controller now separates polling-based monitoring from scaling execution through an in-process queue and continues sampling while an action is pending or executing, suppressing further decisions and excluding overlapping samples from threshold confirmation. Stage 2 adds direct EC2 start/stop control and a six-trial comparison. CloudWatch Alarm/EventBridge integration, robust duplicate-event handling for external events, and broader performance evaluation remain future work.
+The local scripts currently collect only a subset of these measurements. A local event controller now separates polling-based monitoring from scaling execution through an in-process queue and continues sampling while an action is pending or executing, suppressing further decisions and excluding overlapping samples from threshold confirmation. Stage 2 adds direct EC2 start/stop control and a six-trial comparison. The latest RequestCount stage adds CloudWatch Alarm/EventBridge integration and DynamoDB/SQS coordination. Broader evaluation and separately labelled confirmation-path experiments remain future work.
 
 ## Project summary
 
-This project investigates event-driven autoscaling for AWS EC2 by comparing it with periodic polling under the same application and reproducible HTTP workloads. Evaluation covers scaling responsiveness, application performance, resource efficiency, and controller overhead. The repository includes a local Docker polling baseline, a local event controller, a load balancer, a workload generator, and metrics collection scripts. The completed 18-minute baseline processed all 4,440 requests successfully, with a mean response time of 184 ms, a P95 of 203 ms, and a container-count sequence of 1 -> 2 -> 3 -> 2 -> 1. The local event-driven experiment also completed successfully, as detailed above. The six-trial multi-EC2 comparison confirms monitoring continuity without demonstrating a request-latency advantage. CloudWatch/EventBridge integration and broader evaluation remain future work. See the application entry-point limitation above before attempting to reproduce the experiments.
+This project investigates event-driven autoscaling for AWS EC2 by comparing it with periodic polling under the same application and reproducible HTTP workloads. Evaluation covers scaling responsiveness, application performance, resource efficiency, and controller overhead. The repository includes a local Docker polling baseline, a local event controller, a load balancer, a workload generator, and metrics collection scripts. The completed 18-minute baseline processed all 4,440 requests successfully, with a mean response time of 184 ms, a P95 of 203 ms, and a container-count sequence of 1 -> 2 -> 3 -> 2 -> 1. The local event-driven experiment also completed successfully, as detailed above. The six-trial multi-EC2 comparison confirms monitoring continuity without demonstrating a request-latency advantage. The latest RequestCount comparison implements CloudWatch/EventBridge integration and demonstrates an overhead-versus-response-time trade-off; broader evaluation remains future work. See the application entry-point limitation above before attempting to reproduce the experiments.
 
 Resource usage analysis for the event-driven run must exclude the several hours of idle monitoring recorded after the workload ended.

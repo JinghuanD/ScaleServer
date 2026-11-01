@@ -22,3 +22,11 @@ Thumbs.db
 # Temporary output
 tmp/
 *.log
+
+# Private AWS RequestCount experiment inputs (keep local)
+/scaleserver_polling_event.zip
+/cloud/polling_event/README_zh.md
+/experiments/aws-requestcount-20261030/runs/
+/experiments/aws-requestcount-20261030/controller_logs/
+/experiments/aws-requestcount-20261030/alarm_history/
+/experiments/aws-requestcount-20261030/SOURCE_MANIFEST.json
