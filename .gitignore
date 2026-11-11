@@ -30,3 +30,7 @@ tmp/
 /experiments/aws-requestcount-20261030/controller_logs/
 /experiments/aws-requestcount-20261030/alarm_history/
 /experiments/aws-requestcount-20261030/SOURCE_MANIFEST.json
+
+# Private matched local experiment archives and generated trial logs
+/local_comparison_complete_*.zip
+/data/local_comparison/

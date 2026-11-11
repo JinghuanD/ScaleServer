@@ -6,6 +6,12 @@ ScaleServer is an experimental project investigating how event-driven auto scali
 
 The project direction follows Jinghuan Ding's proposal, *Event-Driven Auto Scaling Controller for AWS EC2*. This repository currently contains a local Docker polling baseline, a local event controller, and experiment tooling; the latest stage implements ALB/ASG capacity control through Lambda, with scheduled polling or CloudWatch/EventBridge triggers and SQS rechecks.
 
+## Local Docker V3: matched polling and event notification
+
+With the same sampler, confirmation rules, and independent scaling worker, event notification reduced controller evaluations from **780 to 4 per run (99.49%)**. Both modes recorded **388 monitoring samples per run**. Mean confirmation-to-decision latency fell from **601.881 ms to 0.196 ms**, but mean request latency was slightly higher in event mode (177.345 ms versus 175.224 ms). All 11,880 requests across the six formal runs succeeded.
+
+This experiment measures notification after local confirmation. It does not imply an equivalent reduction in total monitoring cost or faster EC2 provisioning. See the [English results, timing definitions, and AWS comparison](experiments/local-matched-v3-20261111/README.md), [per-run results](experiments/local-matched-v3-20261111/run_summary.csv), and [V3 code](local_comparison/).
+
 ## AWS RequestCount Comparison: ALB, ASG, and Lambda
 
 Publication scope: this update includes sanitized controller code and aggregate results only. Raw AWS logs, alarm histories, deployment manifests, and original archives are retained locally and are not published.
