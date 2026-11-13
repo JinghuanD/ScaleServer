@@ -34,3 +34,10 @@ tmp/
 # Private matched local experiment archives and generated trial logs
 /local_comparison_complete_*.zip
 /data/local_comparison/
+
+/local_resource_complete_*.zip
+/data/local_resource_comparison/
+/local_resource_comparison/*
+!/local_resource_comparison/*.py
+!/local_resource_comparison/run_resource_suite.ps1
+!/local_resource_comparison/requirements.txt
