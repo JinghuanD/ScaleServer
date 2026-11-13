@@ -6,6 +6,12 @@ ScaleServer is an experimental project investigating how event-driven auto scali
 
 The project direction follows Jinghuan Ding's proposal, *Event-Driven Auto Scaling Controller for AWS EC2*. This repository currently contains a local Docker polling baseline, a local event controller, and experiment tooling; the latest stage implements ALB/ASG capacity control through Lambda, with scheduled polling or CloudWatch/EventBridge triggers and SQS rechecks.
 
+## Local Docker blocking-wait experiment
+
+Across 12 blocking-wait runs, 17,279 of 17,280 requests succeeded. One polling request failed to connect to the local load balancer. All expected scaling actions completed. Under the step workload, mean time from condition confirmation to decision was 619.876 ms for polling and 0.156 ms for event notification. Overall controller CPU and memory differences were small.
+
+[English report](experiments/local-resource-blocking-20261113/) | [Per-run measurements](experiments/local-resource-blocking-20261113/run_summary.csv) | [Blocking-wait source](local_resource_comparison_v2/)
+
 ## Local Docker resource measurements
 
 Across 12 instrumented runs, both controllers served all 17,280 requests successfully. On the stable workload, the polling and event-driven processes averaged 0.458% and 0.551% of one CPU core. On the step workload, they averaged 0.453% and 0.437%. The lower evaluation count observed in the matched V3 experiment did not translate into consistent CPU or memory savings. Docker CLI collection used more CPU time than the controller process in all four conditions.

@@ -41,3 +41,11 @@ tmp/
 !/local_resource_comparison/*.py
 !/local_resource_comparison/run_resource_suite.ps1
 !/local_resource_comparison/requirements.txt
+
+/local_resource_blocking_*.zip
+/local_resource_comparison_v2.zip
+/data/local_resource_comparison_v2/
+/local_resource_comparison_v2/*
+!/local_resource_comparison_v2/*.py
+!/local_resource_comparison_v2/run_resource_suite.ps1
+!/local_resource_comparison_v2/requirements.txt
